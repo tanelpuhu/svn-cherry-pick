@@ -45,8 +45,8 @@ func (commit svnCommit) matchTicket(hay []string) bool {
 func errorAndExit(message string, error []byte) {
 	fmt.Printf("Error getting mergeinfo:\n\n")
 	lines := strings.Split(strings.Trim(string(error), "\n"), "\n")
-	for i := 0; i < len(lines); i++ {
-		fmt.Printf("  > %s\n", lines[i])
+	for _, line := range lines {
+		fmt.Printf("=> %s\n", line)
 	}
 	fmt.Printf("\n")
 	os.Exit(1)
