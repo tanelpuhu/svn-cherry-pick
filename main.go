@@ -11,10 +11,11 @@ import (
 	"strings"
 )
 
-const constVersion string = "0.0.1"
+const constVersion string = "0.0.2"
 const constSVNMessageLimit = 80
 const constSVNSepartatorLine = "------------------------------------------------------------------------"
-const constSVNCommitLine = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
+const constSVNCommitLineRegex = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
+const constTicketRegex = `([A-Z]+-[0-9]+)`
 
 type svnCommit struct {
 	revision string
@@ -38,7 +39,15 @@ func (commit svnCommit) matchRevision(hay []string) bool {
 }
 
 func (commit svnCommit) matchTicket(hay []string) bool {
-	// todo
+	if len(hay) == 0 {
+		return false
+	}
+	rex, _ := regexp.Compile(constTicketRegex)
+	for _, item := range rex.FindStringSubmatch(commit.msg) {
+		if inStringSlice(hay, item) {
+			return true
+		}
+	}
 	return false
 }
 
@@ -71,7 +80,7 @@ func getEligibleCommits(source string) []svnCommit {
 	if err != nil {
 		errorAndExit("Error getting mergeinfo", content)
 	}
-	rex, _ := regexp.Compile(constSVNCommitLine)
+	rex, _ := regexp.Compile(constSVNCommitLineRegex)
 	var commit svnCommit
 	lines := strings.Split(string(content), "\n")
 	var line string
@@ -161,8 +170,11 @@ func main() {
 	}
 
 	for _, commit := range getEligibleCommits(source) {
-		if len(filterCommit) > 0 || len(filterTicket) > 0 {
-			if commit.matchRevision(filterCommit) || commit.matchTicket(filterTicket) {
+		if len(filterTicket) > 0 && !commit.matchTicket(filterTicket) {
+			continue
+		}
+		if len(filterCommit) > 0 {
+			if commit.matchRevision(filterCommit) {
 				commit.CherryPick()
 			}
 		} else {
