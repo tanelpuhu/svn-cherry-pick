@@ -73,7 +73,11 @@ func (commit svnCommit) CherryPick() {
 }
 
 func getEligibleCommits(source string) []svnCommit {
-	var res = []svnCommit{}
+	var (
+		res    = []svnCommit{}
+		commit svnCommit
+		line   string
+	)
 	content, err := exec.Command(
 		"svn", "mergeinfo", "--show-revs", "eligible", "--log", source, ".",
 	).CombinedOutput()
@@ -81,9 +85,7 @@ func getEligibleCommits(source string) []svnCommit {
 		errorAndExit("Error getting mergeinfo", content)
 	}
 	rex, _ := regexp.Compile(constSVNCommitLineRegex)
-	var commit svnCommit
 	lines := strings.Split(string(content), "\n")
-	var line string
 	for len(lines) != 0 {
 		lines, line = lines[1:], lines[0]
 		if line == constSVNSepartatorLine {
@@ -109,9 +111,11 @@ func getEligibleCommits(source string) []svnCommit {
 }
 
 func parseArgs(args []string) (string, []string, []string) {
-	var filterCommit []string
-	var filterTicket []string
-	var arg string
+	var (
+		filterCommit []string
+		filterTicket []string
+		arg          string
+	)
 
 	if len(args) > 1 {
 		for i := 1; i < len(args); i++ {
