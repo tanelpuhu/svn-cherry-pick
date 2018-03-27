@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,7 +13,10 @@ import (
 	"strings"
 )
 
-const constVersion string = "0.0.2"
+// ErrNoSVN is given if svn is not in $PATH
+var ErrNoSVN = errors.New("svn not present in $PATH")
+
+const constVersion string = "0.0.3"
 const constSVNMessageLimit = 80
 const constSVNSepartatorLine = "------------------------------------------------------------------------"
 const constSVNCommitLineRegex = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
@@ -51,38 +56,35 @@ func (commit svnCommit) matchTicket(hay []string) bool {
 	return false
 }
 
-func errorAndExit(message string, error []byte) {
-	fmt.Printf("Error getting mergeinfo:\n\n")
-	lines := strings.Split(strings.Trim(string(error), "\n"), "\n")
-	for _, line := range lines {
-		fmt.Printf("=> %s\n", line)
-	}
-	fmt.Printf("\n")
-	os.Exit(1)
-}
-
-func (commit svnCommit) CherryPick() {
+func (commit svnCommit) CherryPick() error {
 	fmt.Printf("Cherrypicking r%s from %s...\n", commit.revision, commit.source)
 	content, err := exec.Command(
 		"svn", "merge", "-c", commit.revision, commit.source,
 	).CombinedOutput()
 	if err != nil {
-		errorAndExit("Error cherry-picking", content)
+		return err
 	}
 	fmt.Printf("%s", content)
+	return nil
 }
 
-func getEligibleCommits(source string) []svnCommit {
+func getEligibleCommits(source string) ([]svnCommit, error) {
 	var (
 		res    = []svnCommit{}
 		commit svnCommit
 		line   string
 	)
+
+	_, err := exec.LookPath("svn")
+	if err != nil {
+		return res, ErrNoSVN
+	}
+
 	content, err := exec.Command(
 		"svn", "mergeinfo", "--show-revs", "eligible", "--log", source, ".",
 	).CombinedOutput()
 	if err != nil {
-		errorAndExit("Error getting mergeinfo", content)
+		return res, err
 	}
 	rex, _ := regexp.Compile(constSVNCommitLineRegex)
 	lines := strings.Split(string(content), "\n")
@@ -107,7 +109,7 @@ func getEligibleCommits(source string) []svnCommit {
 			}
 		}
 	}
-	return res
+	return res, nil
 }
 
 func parseArgs(args []string) (string, []string, []string) {
@@ -173,13 +175,21 @@ func main() {
 		source = "^/" + source
 	}
 
-	for _, commit := range getEligibleCommits(source) {
+	commits, err := getEligibleCommits(source)
+	if err != nil {
+		log.Fatalf("Error getting eligible commits: %s\n", err)
+	}
+
+	for _, commit := range commits {
 		if len(filterTicket) > 0 && !commit.matchTicket(filterTicket) {
 			continue
 		}
 		if len(filterCommit) > 0 {
 			if commit.matchRevision(filterCommit) {
-				commit.CherryPick()
+				err := commit.CherryPick()
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		} else {
 			commit.Print()
