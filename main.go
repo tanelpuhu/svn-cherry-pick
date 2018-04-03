@@ -136,8 +136,14 @@ func parseArgs(args []string) (string, []string, []string) {
 		j, _ = strconv.Atoi(filterCommit[j])
 		return i < j
 	})
-	return flag.Arg(0), filterCommit, filterTicket
-
+	source := flag.Arg(0)
+	if !strings.HasPrefix(source, "^/") {
+		if source != "trunk" && !strings.HasPrefix(source, "branches/") {
+			source = "branches/" + source
+		}
+		source = "^/" + source
+	}
+	return source, filterCommit, filterTicket
 }
 
 func inStringSlice(hay []string, needle string) bool {
@@ -173,14 +179,6 @@ func main() {
 		flag.Usage()
 	}
 	source, filterCommit, filterTicket := parseArgs(args)
-
-	if !strings.HasPrefix(source, "^/") {
-		if source != "trunk" && !strings.HasPrefix(source, "branches/") {
-			source = "branches/" + source
-		}
-		source = "^/" + source
-	}
-
 	commits, err := getEligibleCommits(source)
 	if err != nil {
 		log.Fatalf("Error getting eligible commits: %s\n", err)
