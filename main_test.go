@@ -78,5 +78,22 @@ func TestParseArgs(t *testing.T) {
 			t.Errorf("Did find %s in '%s'", key, filterCommit)
 		}
 	}
+}
 
+func TestSortRevisions(t *testing.T) {
+	var (
+		filterCommit []string
+	)
+	os.Args = append(os.Args, "trunk")
+	_, filterCommit, _ = parseArgs(
+		[]string{"trunk", "7", "9", "10", "50", "99", "402", "999"},
+	)
+	if len(filterCommit) != 7 {
+		t.Errorf("filterCommit length should be 7, filterCommit is '%s'", filterCommit)
+	}
+	for i, val := range []string{} {
+		if filterCommit[i] != val {
+			t.Errorf("revision %d should be %s and not '%s'", i+1, val, filterCommit[i])
+		}
+	}
 }

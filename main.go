@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -16,7 +17,7 @@ import (
 // ErrNoSVN is given if svn is not in $PATH
 var ErrNoSVN = errors.New("svn not present in $PATH")
 
-const constVersion string = "0.0.3"
+const constVersion string = "0.0.4"
 const constSVNMessageLimit = 80
 const constSVNSepartatorLine = "------------------------------------------------------------------------"
 const constSVNCommitLineRegex = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
@@ -130,6 +131,11 @@ func parseArgs(args []string) (string, []string, []string) {
 			}
 		}
 	}
+	sort.Slice(filterCommit, func(i, j int) bool {
+		i, _ = strconv.Atoi(filterCommit[i])
+		j, _ = strconv.Atoi(filterCommit[j])
+		return i < j
+	})
 	return flag.Arg(0), filterCommit, filterTicket
 
 }
