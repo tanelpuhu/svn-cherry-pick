@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/tanelpuhu/go/str"
 )
 
 // ErrNoSVN is given if svn is not in $PATH
@@ -41,7 +43,7 @@ func (commit svnCommit) Print() {
 }
 
 func (commit svnCommit) matchRevision(hay []string) bool {
-	return inStringSlice(hay, commit.revision)
+	return str.InSlice(hay, commit.revision)
 }
 
 func (commit svnCommit) matchTicket(hay []string) bool {
@@ -50,7 +52,7 @@ func (commit svnCommit) matchTicket(hay []string) bool {
 	}
 	rex, _ := regexp.Compile(constTicketRegex)
 	for _, item := range rex.FindStringSubmatch(commit.msg) {
-		if inStringSlice(hay, item) {
+		if str.InSlice(hay, item) {
 			return true
 		}
 	}
@@ -144,15 +146,6 @@ func parseArgs(args []string) (string, []string, []string) {
 		source = "^/" + source
 	}
 	return source, filterCommit, filterTicket
-}
-
-func inStringSlice(hay []string, needle string) bool {
-	for _, item := range hay {
-		if item == needle {
-			return true
-		}
-	}
-	return false
 }
 
 func init() {
