@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 	"testing"
+
+	"github.com/tanelpuhu/go/str"
 )
 
 func makeCommit() svnCommit {
@@ -61,20 +63,20 @@ func TestParseArgs(t *testing.T) {
 	}
 
 	for _, key := range []string{"12", "34", "6543324"} {
-		if !inStringSlice(filterCommit, key) {
+		if !str.InSlice(filterCommit, key) {
 			t.Errorf("Did not find revision %s in '%s'", key, filterCommit)
 		}
-		if inStringSlice(filterTicket, key) {
+		if str.InSlice(filterTicket, key) {
 			t.Errorf("Did find revision %s in '%s'", key, filterTicket)
 		}
 	}
 
 	for _, key := range []string{"FIX-123", "blah-999"} {
-		if !inStringSlice(filterTicket, key) {
+		if !str.InSlice(filterTicket, key) {
 			t.Errorf("Did not find revision %s in '%s'", key, filterTicket)
 		}
 
-		if inStringSlice(filterCommit, key) {
+		if str.InSlice(filterCommit, key) {
 			t.Errorf("Did find %s in '%s'", key, filterCommit)
 		}
 	}
