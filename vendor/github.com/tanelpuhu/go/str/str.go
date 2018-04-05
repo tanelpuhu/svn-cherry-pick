@@ -9,3 +9,8 @@ func InSlice(haystack []string, needle string) bool {
 	}
 	return false
 }
+
+// IsSeven ...
+func IsSeven(val string) bool {
+	return "7" == val
+}

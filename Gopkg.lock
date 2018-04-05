@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/tanelpuhu/go"
   packages = ["str"]
-  revision = "fef40fe623fca2b2a56af1a8a09ebf8be6257ae0"
+  revision = "951cf519d2cd09d5a7da9e828f6ec443449ee40a"
 
 [solve-meta]
   analyzer-name = "dep"
