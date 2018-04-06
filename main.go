@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/tanelpuhu/go/str"
 )
@@ -19,7 +20,7 @@ import (
 // ErrNoSVN is given if svn is not in $PATH
 var ErrNoSVN = errors.New("svn not present in $PATH")
 
-const constVersion string = "0.0.4"
+const constVersion string = "0.0.5"
 const constSVNMessageLimit = 80
 const constSVNSepartatorLine = "------------------------------------------------------------------------"
 const constSVNCommitLineRegex = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
@@ -31,15 +32,6 @@ type svnCommit struct {
 	date     string
 	msg      string
 	source   string
-}
-
-func (commit svnCommit) Print() {
-	fmt.Printf("%5s %12s %s %s\n",
-		commit.revision,
-		commit.author,
-		commit.date,
-		commit.msg,
-	)
 }
 
 func (commit svnCommit) matchRevision(hay []string) bool {
@@ -177,6 +169,9 @@ func main() {
 		log.Fatalf("Error getting eligible commits: %s\n", err)
 	}
 
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	line := "%s\t%s\t%s\t%s"
+
 	for _, commit := range commits {
 		if len(filterTicket) > 0 && !commit.matchTicket(filterTicket) {
 			continue
@@ -189,7 +184,14 @@ func main() {
 				}
 			}
 		} else {
-			commit.Print()
+			fmt.Fprintln(w, fmt.Sprintf(
+				line,
+				commit.revision,
+				commit.author,
+				commit.date,
+				commit.msg,
+			))
 		}
 	}
+	w.Flush()
 }
