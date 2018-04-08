@@ -20,7 +20,7 @@ import (
 // ErrNoSVN is given if svn is not in $PATH
 var ErrNoSVN = errors.New("svn not present in $PATH")
 
-const constVersion string = "0.0.5"
+const constVersion string = "0.0.6"
 const constSVNMessageLimit = 80
 const constSVNSepartatorLine = "------------------------------------------------------------------------"
 const constSVNCommitLineRegex = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
@@ -53,14 +53,12 @@ func (commit svnCommit) matchTicket(hay []string) bool {
 
 func (commit svnCommit) CherryPick() error {
 	fmt.Printf("Cherrypicking r%s from %s...\n", commit.revision, commit.source)
-	content, err := exec.Command(
+	cmd := exec.Command(
 		"svn", "merge", "-c", commit.revision, commit.source,
-	).CombinedOutput()
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%s", content)
-	return nil
+	)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func getEligibleCommits(source string) ([]svnCommit, error) {
