@@ -7,15 +7,40 @@ import (
 	"github.com/tanelpuhu/go/str"
 )
 
+const mergeinfodata = `
+------------------------------------------------------------------------
+r12345 | username1 | 2000-01-01 00:00:53 +0000 (Wed, 12 Sep 2018) | 6 lines
+
+JIRA-12345, Issue with script
+
+Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
+when an unknown printer took a galley of type and scrambled it to make a type
+specimen book. It has survived not only five centuries, but also the leap into
+electronic typesetting....
+
+
+
+------------------------------------------------------------------------
+r12346 | user2 | 2002-01-01 00:00:58 +0000 (Wed, 19 Sep 2018) | 1 line
+
+JIRA-12346 fixes
+------------------------------------------------------------------------
+r12347 | blaaaah | 2004-01-01 00:01:43 +0000 (Wed, 19 Sep 2018) | 1 line
+
+JIRA-12347 more fixes
+and some
+and some
+------------------------------------------------------------------------
+`
+
 func makeCommit() svnCommit {
 	commit := svnCommit{}
 	commit.revision = "1"
 	commit.author = "me"
 	commit.date = "2018-01-01"
 	commit.msg = "fix for JIRA-334"
-	commit.source = "^/branches/hotfix-8"
 	return commit
-
 }
 
 func TestCommitRevMatch(t *testing.T) {
@@ -43,6 +68,36 @@ func TestCommitTicketMisMatch(t *testing.T) {
 	commit, args := makeCommit(), []string{"JIRA-123"}
 	if commit.matchTicket(args) {
 		t.Errorf("Should not match: '%s' vs %s?", commit.msg, args)
+	}
+}
+
+func TestParseMergeInfoLog(t *testing.T) {
+
+	commits, err := parseMergeInfoLog([]byte(mergeinfodata))
+	if err != nil {
+		t.Fatalf("error parsing mergeinfo: %v", err)
+	}
+	if len(commits) != 3 {
+		t.Errorf("did not find 3 but %d commits", len(commits))
+	}
+	expecting := []svnCommit{
+		{"12345", "username1", "2000-01-01", "JIRA-12345, Issue with script"},
+		{"12346", "user2", "2002-01-01", "JIRA-12346 fixes"},
+		{"12347", "blaaaah", "2004-01-01", "JIRA-12347 more fixes"},
+	}
+	for i, commit := range commits {
+		if commit.revision != expecting[i].revision {
+			t.Errorf("unexpected revision, expected %s, got %s", expecting[i].revision, commit.revision)
+		}
+		if commit.author != expecting[i].author {
+			t.Errorf("unexpected author, expected %s, got %s", expecting[i].author, commit.author)
+		}
+		if commit.date != expecting[i].date {
+			t.Errorf("unexpected date, expected %s, got %s", expecting[i].date, commit.date)
+		}
+		if commit.msg != expecting[i].msg {
+			t.Errorf("unexpected msg, expected %s, got %s", expecting[i].msg, commit.msg)
+		}
 	}
 }
 

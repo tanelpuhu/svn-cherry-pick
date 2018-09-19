@@ -20,7 +20,7 @@ import (
 // ErrNoSVN is given if svn is not in $PATH
 var ErrNoSVN = errors.New("svn not present in $PATH")
 
-const constVersion string = "0.0.6"
+const constVersion string = "0.0.7"
 const constSVNMessageLimit = 120
 const constSVNSepartatorLine = "------------------------------------------------------------------------"
 const constSVNCommitLineRegex = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
@@ -31,7 +31,6 @@ type svnCommit struct {
 	author   string
 	date     string
 	msg      string
-	source   string
 }
 
 func (commit svnCommit) matchRevision(hay []string) bool {
@@ -51,10 +50,10 @@ func (commit svnCommit) matchTicket(hay []string) bool {
 	return false
 }
 
-func (commit svnCommit) CherryPick() error {
-	fmt.Printf("Cherrypicking r%s from %s...\n", commit.revision, commit.source)
+func (commit svnCommit) CherryPick(source string) error {
+	fmt.Printf("Cherrypicking r%s from %s...\n", commit.revision, source)
 	cmd := exec.Command(
-		"svn", "merge", "-c", commit.revision, commit.source,
+		"svn", "merge", "-c", commit.revision, source,
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -62,23 +61,26 @@ func (commit svnCommit) CherryPick() error {
 }
 
 func getEligibleCommits(source string) ([]svnCommit, error) {
-	var (
-		res    = []svnCommit{}
-		commit svnCommit
-		line   string
-	)
-
 	_, err := exec.LookPath("svn")
 	if err != nil {
-		return res, ErrNoSVN
+		return nil, ErrNoSVN
 	}
 
 	content, err := exec.Command(
 		"svn", "mergeinfo", "--show-revs", "eligible", "--log", source, ".",
 	).CombinedOutput()
 	if err != nil {
-		return res, fmt.Errorf("%s", content)
+		return nil, fmt.Errorf("%s", content)
 	}
+	return parseMergeInfoLog(content)
+}
+
+func parseMergeInfoLog(content []byte) ([]svnCommit, error) {
+	var (
+		res    = []svnCommit{}
+		commit svnCommit
+		line   string
+	)
 	rex, _ := regexp.Compile(constSVNCommitLineRegex)
 	lines := strings.Split(string(content), "\n")
 	for len(lines) != 0 {
@@ -88,7 +90,6 @@ func getEligibleCommits(source string) ([]svnCommit, error) {
 			resultSlice := rex.FindStringSubmatch(line)
 			if len(resultSlice) == 5 {
 				commit = svnCommit{}
-				commit.source = source
 				commit.revision = resultSlice[1]
 				commit.author = resultSlice[2]
 				commit.date = resultSlice[3][:10]
@@ -177,7 +178,7 @@ func main() {
 		}
 		if len(filterCommit) > 0 {
 			if commit.matchRevision(filterCommit) {
-				err := commit.CherryPick()
+				err := commit.CherryPick(source)
 				if err != nil {
 					log.Fatal(err)
 				}
