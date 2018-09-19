@@ -21,7 +21,7 @@ import (
 var ErrNoSVN = errors.New("svn not present in $PATH")
 
 const constVersion string = "0.0.6"
-const constSVNMessageLimit = 80
+const constSVNMessageLimit = 120
 const constSVNSepartatorLine = "------------------------------------------------------------------------"
 const constSVNCommitLineRegex = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
 const constTicketRegex = `([A-Z]+-[0-9]+)`
@@ -77,7 +77,7 @@ func getEligibleCommits(source string) ([]svnCommit, error) {
 		"svn", "mergeinfo", "--show-revs", "eligible", "--log", source, ".",
 	).CombinedOutput()
 	if err != nil {
-		return res, err
+		return res, fmt.Errorf("%s", content)
 	}
 	rex, _ := regexp.Compile(constSVNCommitLineRegex)
 	lines := strings.Split(string(content), "\n")
@@ -169,6 +169,7 @@ func main() {
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	line := "%s\t%s\t%s\t%s"
+	firstRow := false
 
 	for _, commit := range commits {
 		if len(filterTicket) > 0 && !commit.matchTicket(filterTicket) {
@@ -182,6 +183,16 @@ func main() {
 				}
 			}
 		} else {
+			if firstRow == false {
+				firstRow = true
+				fmt.Fprintln(w, fmt.Sprintf(
+					line,
+					"Revision",
+					"Author",
+					"Date",
+					"Message",
+				))
+			}
 			fmt.Fprintln(w, fmt.Sprintf(
 				line,
 				commit.revision,
