@@ -88,14 +88,14 @@ func TestSortRevisions(t *testing.T) {
 	)
 	os.Args = append(os.Args, "trunk")
 	_, filterCommit, _ = parseArgs(
-		[]string{"trunk", "7", "9", "10", "50", "99", "402", "999"},
+		[]string{"trunk", "917", "9", "10", "450", "99", "402", "999"},
 	)
 	if len(filterCommit) != 7 {
 		t.Errorf("filterCommit length should be 7, filterCommit is '%s'", filterCommit)
 	}
-	for i, val := range []string{} {
+	for i, val := range []string{"9", "10", "99", "402", "450", "917", "999"} {
 		if filterCommit[i] != val {
-			t.Errorf("revision %d should be %s and not '%s'", i+1, val, filterCommit[i])
+			t.Errorf("revision %d should be '%s' and not '%s'", i+1, val, filterCommit[i])
 		}
 	}
 }
