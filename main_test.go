@@ -92,7 +92,7 @@ func TestParseMergeInfoLog(t *testing.T) {
 		if commit.author != expecting[i].author {
 			t.Errorf("unexpected author, expected %s, got %s", expecting[i].author, commit.author)
 		}
-		if commit.date != expecting[i].date {
+		if commit.date[:10] != expecting[i].date {
 			t.Errorf("unexpected date, expected %s, got %s", expecting[i].date, commit.date)
 		}
 		if commit.msg != expecting[i].msg {

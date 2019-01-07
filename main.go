@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/tanelpuhu/go/str"
 )
@@ -92,7 +93,7 @@ func parseMergeInfoLog(content []byte) ([]svnCommit, error) {
 				commit = svnCommit{}
 				commit.revision = resultSlice[1]
 				commit.author = resultSlice[2]
-				commit.date = resultSlice[3][:10]
+				commit.date = textToLocalTimeText(resultSlice[3][:25])
 				// skip blank line, take first comment line
 				lines, line = lines[2:], lines[1]
 				commit.msg = line
@@ -104,6 +105,14 @@ func parseMergeInfoLog(content []byte) ([]svnCommit, error) {
 		}
 	}
 	return res, nil
+}
+
+func textToLocalTimeText(text string) string {
+	result, err := time.Parse("2006-01-02 15:04:05 -0700", text)
+	if err != nil {
+		log.Fatalf("error parsing date %s: %v", text, err)
+	}
+	return result.Local().Format("2006-01-02 15:04:05")
 }
 
 func parseArgs(args []string) (string, []string, []string) {
