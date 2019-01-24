@@ -18,10 +18,15 @@ import (
 	"github.com/tanelpuhu/go/str"
 )
 
-// ErrNoSVN is given if svn is not in $PATH
-var ErrNoSVN = errors.New("svn not present in $PATH")
+var (
+	// ErrNoSVN is given if svn is not in $PATH
+	ErrNoSVN = errors.New("svn not present in $PATH")
 
-const constVersion string = "0.0.7"
+	flagVersion bool
+	flagUser    string
+)
+
+const constVersion string = "0.0.8"
 const constSVNMessageLimit = 120
 const constSVNSepartatorLine = "------------------------------------------------------------------------"
 const constSVNCommitLineRegex = `^r(\d*)\s\|\s([^\|]*)\s\|\s([^\|]*)\|\s(.*)$`
@@ -149,11 +154,13 @@ func parseArgs(args []string) (string, []string, []string) {
 }
 
 func init() {
-	var flagVersion bool
 	flag.BoolVar(&flagVersion, "V", false, "Print version")
+	flag.StringVar(&flagUser, "u", "", "filter by username")
 	flag.Usage = func() {
-		fmt.Fprint(os.Stderr,
-			fmt.Sprintf("Usage: %s <source-path/branch-name/trunk>\n\n", filepath.Base(os.Args[0])))
+		fmt.Fprint(os.Stderr, fmt.Sprintf(
+			"Usage: %s [options] <source-path/branch-name/trunk> [revision-numbers and/or ticket-numbers]\n\n",
+			filepath.Base(os.Args[0]),
+		))
 		fmt.Println("Options:")
 		flag.PrintDefaults()
 		os.Exit(1)
@@ -183,6 +190,9 @@ func main() {
 
 	for _, commit := range commits {
 		if len(filterTicket) > 0 && !commit.matchTicket(filterTicket) {
+			continue
+		}
+		if flagUser != "" && commit.author != flagUser {
 			continue
 		}
 		if len(filterCommit) > 0 {

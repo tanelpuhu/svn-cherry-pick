@@ -5,7 +5,7 @@
 
 Usage:
 
-	svn-cherry-pick <branch-name> [revision-numbers] [ticket-numbers-(todo)]
+	svn-cherry-pick [options] <source-path/branch-name/trunk> [revision-numbers and/or ticket-numbers]
 
 
 Example:
