@@ -3,7 +3,7 @@ name: first
 
 workspace:
   base: /go
-  path: src/github.com.com/tanelpuhu/svn-cherry-pick/
+  path: src/github.com/tanelpuhu/svn-cherry-pick/
 
 steps:
 - name: test
