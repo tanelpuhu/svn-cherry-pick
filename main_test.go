@@ -3,8 +3,6 @@ package main
 import (
 	"os"
 	"testing"
-
-	"github.com/tanelpuhu/go/str"
 )
 
 const mergeinfodata = `
@@ -118,20 +116,20 @@ func TestParseArgs(t *testing.T) {
 	}
 
 	for _, key := range []string{"12", "34", "6543324"} {
-		if !str.InSlice(filterCommit, key) {
+		if !stringInSlice(filterCommit, key) {
 			t.Errorf("Did not find revision %s in '%s'", key, filterCommit)
 		}
-		if str.InSlice(filterTicket, key) {
+		if stringInSlice(filterTicket, key) {
 			t.Errorf("Did find revision %s in '%s'", key, filterTicket)
 		}
 	}
 
 	for _, key := range []string{"FIX-123", "blah-999"} {
-		if !str.InSlice(filterTicket, key) {
+		if !stringInSlice(filterTicket, key) {
 			t.Errorf("Did not find revision %s in '%s'", key, filterTicket)
 		}
 
-		if str.InSlice(filterCommit, key) {
+		if stringInSlice(filterCommit, key) {
 			t.Errorf("Did find %s in '%s'", key, filterCommit)
 		}
 	}

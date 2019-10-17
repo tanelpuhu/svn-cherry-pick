@@ -3,9 +3,5 @@ language: go
 notifications:
   email: false
 
-before_script:
-  - go get github.com/golang/lint/golint
-  - go get github.com/fzipp/gocyclo
-
 script:
   - make test

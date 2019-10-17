@@ -3,8 +3,6 @@ DIRNAME=$(shell basename ${PWD})
 
 test:
 	go fmt
-	gocyclo -over 12 $(shell find . -iname '*.go' -type f | grep -v /vendor/)
-	golint -set_exit_status
 	go test -v -cover
 
 build: test

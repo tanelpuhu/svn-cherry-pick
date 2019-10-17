@@ -14,8 +14,6 @@ import (
 	"strings"
 	"text/tabwriter"
 	"time"
-
-	"github.com/tanelpuhu/go/str"
 )
 
 var (
@@ -39,8 +37,17 @@ type svnCommit struct {
 	msg      string
 }
 
+func stringInSlice(hey []string, needle string) bool {
+	for _, item := range hey {
+		if item == needle {
+			return true
+		}
+	}
+	return false
+}
+
 func (commit svnCommit) matchRevision(hay []string) bool {
-	return str.InSlice(hay, commit.revision)
+	return stringInSlice(hay, commit.revision)
 }
 
 func (commit svnCommit) matchTicket(hay []string) bool {
@@ -49,7 +56,7 @@ func (commit svnCommit) matchTicket(hay []string) bool {
 	}
 	rex, _ := regexp.Compile(constTicketRegex)
 	for _, item := range rex.FindStringSubmatch(commit.msg) {
-		if str.InSlice(hay, item) {
+		if stringInSlice(hay, item) {
 			return true
 		}
 	}
@@ -153,26 +160,26 @@ func parseArgs(args []string) (string, []string, []string) {
 	return source, filterCommit, filterTicket
 }
 
-func init() {
+func printUsage() {
+	fmt.Fprint(os.Stderr, fmt.Sprintf(
+		"Usage: %s [options] <source-path/branch-name/trunk> [revision-numbers and/or ticket-numbers]\n\n",
+		filepath.Base(os.Args[0]),
+	))
+	fmt.Println("Options:")
+	flag.PrintDefaults()
+	os.Exit(1)
+}
+
+func main() {
 	flag.BoolVar(&flagVersion, "V", false, "Print version")
 	flag.StringVar(&flagUser, "u", "", "filter by username")
-	flag.Usage = func() {
-		fmt.Fprint(os.Stderr, fmt.Sprintf(
-			"Usage: %s [options] <source-path/branch-name/trunk> [revision-numbers and/or ticket-numbers]\n\n",
-			filepath.Base(os.Args[0]),
-		))
-		fmt.Println("Options:")
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
+	flag.Usage = printUsage
 	flag.Parse()
 	if flagVersion {
 		fmt.Printf("%s %v\n", filepath.Base(os.Args[0]), constVersion)
 		os.Exit(0)
 	}
-}
 
-func main() {
 	var args []string
 	args = flag.Args()
 	if len(args) == 0 {
