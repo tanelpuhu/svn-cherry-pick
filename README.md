@@ -1,5 +1,6 @@
 # svn-cherry-pick
 
+[![Actions Status](https://github.com/tanelpuhu/svn-cherry-pick/workflows/Go/badge.svg)](https://github.com/tanelpuhu/svn-cherry-pick/actions)
 [![Build Status](https://travis-ci.org/tanelpuhu/svn-cherry-pick.svg?branch=master)](https://travis-ci.org/tanelpuhu/svn-cherry-pick)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tanelpuhu/svn-cherry-pick)](https://goreportcard.com/report/github.com/tanelpuhu/svn-cherry-pick)
 
