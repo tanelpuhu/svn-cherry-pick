@@ -1,3 +1,3 @@
 module github.com/tanelpuhu/svn-cherry-pick
 
-go 1.13
+go 1.15

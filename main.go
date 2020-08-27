@@ -22,6 +22,7 @@ var (
 
 	flagVersion bool
 	flagUser    string
+	flagSearch  string
 )
 
 const constVersion string = "0.0.8"
@@ -173,11 +174,15 @@ func printUsage() {
 func main() {
 	flag.BoolVar(&flagVersion, "V", false, "Print version")
 	flag.StringVar(&flagUser, "u", "", "filter by username")
+	flag.StringVar(&flagSearch, "s", "", "filter by comment")
 	flag.Usage = printUsage
 	flag.Parse()
 	if flagVersion {
 		fmt.Printf("%s %v\n", filepath.Base(os.Args[0]), constVersion)
 		os.Exit(0)
+	}
+	if flagSearch != "" {
+		flagSearch = strings.ToLower(flagSearch)
 	}
 
 	var args []string
@@ -202,6 +207,10 @@ func main() {
 		if flagUser != "" && commit.author != flagUser {
 			continue
 		}
+		if flagSearch != "" && strings.Index(strings.ToLower(commit.msg), flagSearch) == -1 {
+			continue
+		}
+
 		if len(filterCommit) > 0 {
 			if commit.matchRevision(filterCommit) {
 				err := commit.CherryPick(source)
